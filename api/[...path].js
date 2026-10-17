@@ -5,7 +5,9 @@ export const config = {
 export default async function handler(request) {
   const url = new URL(request.url);
   const target = 'https://xuanji-member.syb-808410.workers.dev';
-  const targetUrl = target + url.pathname + url.search;
+  // 去掉 /api 前缀，因为 Vercel API 路由在 /api 下，但 Worker 接口在根路径
+  const pathname = url.pathname.replace(/^\/api/, '');
+  const targetUrl = target + pathname + url.search;
 
   // CORS 预检请求
   if (request.method === 'OPTIONS') {
@@ -20,7 +22,7 @@ export default async function handler(request) {
   }
 
   try {
-    // 只转发必要的请求头
+    // 只转发必要的请求头，避免 host/content-length 等头导致问题
     const forwardHeaders = new Headers();
     const passHeaders = ['content-type', 'authorization', 'accept', 'user-agent'];
     for (const [key, value] of request.headers.entries()) {
